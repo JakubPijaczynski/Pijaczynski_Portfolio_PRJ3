@@ -48,9 +48,11 @@ class MainActivity : ComponentActivity() {
                     when (screen) {
                         "camera" -> CameraScreen(onBack = { screen = "home" }, modifier = Modifier.padding(innerPadding))
                         "map" -> MapScreen(onBack = { screen = "home" }, modifier = Modifier.padding(innerPadding))
+                        "places" -> PlacesScreen(onBack = { screen = "home" }, modifier = Modifier.padding(innerPadding))
                         else -> PermissionScreen(
                             onOpenCamera = { screen = "camera" },
                             onOpenMap = { screen = "map" },
+                            onOpenPlaces = { screen = "places" },
                             modifier = Modifier.padding(innerPadding)
                         )
                     }
@@ -70,7 +72,7 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 }
 @SuppressLint("MissingPermission")
 @Composable
-fun PermissionScreen(modifier: Modifier = Modifier, onOpenCamera: () -> Unit, onOpenMap: () -> Unit) {
+fun PermissionScreen(modifier: Modifier = Modifier, onOpenCamera: () -> Unit, onOpenMap: () -> Unit, onOpenPlaces: () -> Unit) {
     val context = LocalContext.current
 
     // 1. Check: do we already have it?
@@ -149,6 +151,7 @@ fun PermissionScreen(modifier: Modifier = Modifier, onOpenCamera: () -> Unit, on
         Text(locationText)
         Button(enabled = cameraGranted, onClick = onOpenCamera) { Text("Open camera") }
         Button(enabled = locationGranted, onClick = onOpenMap) { Text("Open map") }
+        Button(onClick = onOpenPlaces) { Text("Saved places (backend)") }
 
         Text("Notifications: ${if (notificationsGranted) "granted" else "not granted"}")
         Button(

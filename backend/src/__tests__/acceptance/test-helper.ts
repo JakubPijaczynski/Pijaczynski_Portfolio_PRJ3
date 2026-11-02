@@ -18,6 +18,11 @@ export async function setupApplication(): Promise<AppWithClient> {
     rest: restConfig,
   });
 
+  // Use a pure in-memory database in tests (no db.json file)
+  app
+    .bind('datasources.config.memory')
+    .to({name: 'memory', connector: 'memory'});
+
   await app.boot();
   await app.start();
 
