@@ -16,6 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import nl.fontys.pijaczynski_portfolio_prj3.ui.theme.Pijaczynski_Portfolio_PRJ3Theme
 import android.Manifest
+import android.annotation.SuppressLint
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -26,6 +27,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 
 
 class MainActivity : ComponentActivity() {
@@ -35,7 +38,12 @@ class MainActivity : ComponentActivity() {
         setContent {
             Pijaczynski_Portfolio_PRJ3Theme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    PermissionScreen(modifier = Modifier.padding(innerPadding))
+                    var showCamera by remember { mutableStateOf(false) }
+                    if (showCamera) {
+                        CameraScreen(onBack = { showCamera = false }, modifier = Modifier.padding(innerPadding))
+                    } else {
+                        PermissionScreen(onOpenCamera = { showCamera = true }, modifier = Modifier.padding(innerPadding))
+                    }
 
                 }
             }
@@ -50,9 +58,9 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
         modifier = modifier
     )
 }
-
+@SuppressLint("MissingPermission")
 @Composable
-fun PermissionScreen(modifier: Modifier = Modifier) {
+fun PermissionScreen(modifier: Modifier = Modifier, onOpenCamera: () -> Unit) {
     val context = LocalContext.current
 
     // 1. Check: do we already have it?
@@ -73,23 +81,41 @@ fun PermissionScreen(modifier: Modifier = Modifier) {
         locationGranted = isGranted(Manifest.permission.ACCESS_COARSE_LOCATION)
     }
 
+    val fusedClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+    var locationText by remember { mutableStateOf("No location yet") }
+
     Column(modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text("Camera: ${if (cameraGranted) "granted ✅" else "not granted ❌"}")
-        Text("Location: ${if (locationGranted) "granted ✅" else "not granted ❌"}")
+        Text("Camera: ${if (cameraGranted) "granted" else "not granted"}")
+        Text("Location: ${if (locationGranted) "granted" else "not granted"}")
 
         // 3. Ask only for what's missing
         Button(onClick = { launcher.launch(arrayOf(Manifest.permission.CAMERA)) }) {
             Text("Allow camera")
         }
         Button(onClick = {
-            launcher.launch(arrayOf(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ))
+            launcher.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
         }) { Text("Allow location") }
+
+        Button(
+            enabled = locationGranted,
+            onClick = {
+                fusedClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
+                    .addOnSuccessListener { loc ->
+                        locationText = if (loc != null) "Lat ${loc.latitude}, Lng ${loc.longitude}"
+                        else "Location unavailable"
+
+                    }
+            }
+        ) { Text("Get my location") }
+        Text(locationText)
+        Button(enabled = cameraGranted, onClick = onOpenCamera) { Text("Open camera") }
     }
 }
-
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
