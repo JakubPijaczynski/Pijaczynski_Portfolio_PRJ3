@@ -29,6 +29,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import android.os.Build
+import android.util.Log
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.LaunchedEffect
+import com.google.firebase.messaging.FirebaseMessaging
 
 
 class MainActivity : ComponentActivity() {
@@ -76,6 +82,11 @@ fun PermissionScreen(modifier: Modifier = Modifier, onOpenCamera: () -> Unit, on
     var locationGranted by remember {
         mutableStateOf(isGranted(Manifest.permission.ACCESS_COARSE_LOCATION))
     }
+    // Android 13+ asks for notifications at runtime, older versions allow them by default
+    fun notificationsAllowed() =
+        Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+                isGranted(Manifest.permission.POST_NOTIFICATIONS)
+    var notificationsGranted by remember { mutableStateOf(notificationsAllowed()) }
 
     // 2. Launcher: shows the system pop-up, the result comes back here
     val launcher = rememberLauncherForActivityResult(
@@ -83,12 +94,31 @@ fun PermissionScreen(modifier: Modifier = Modifier, onOpenCamera: () -> Unit, on
     ) {
         cameraGranted = isGranted(Manifest.permission.CAMERA)
         locationGranted = isGranted(Manifest.permission.ACCESS_COARSE_LOCATION)
+        notificationsGranted = notificationsAllowed()
+    }
+
+    // Push notifications: get this device's token and subscribe to a topic
+    var pushStatus by remember { mutableStateOf("Connecting to Firebase...") }
+    LaunchedEffect(Unit) {
+        FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
+            Log.d("FCM", "Token: $token")   // copy it from Logcat (filter: FCM)
+        }
+        FirebaseMessaging.getInstance().subscribeToTopic("portfolio")
+            .addOnCompleteListener { task ->
+                pushStatus = if (task.isSuccessful) "Subscribed to topic \"portfolio\""
+                else "Topic subscription failed"
+            }
     }
 
     val fusedClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     var locationText by remember { mutableStateOf("No location yet") }
 
-    Column(modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(
+        modifier
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
         Text("Camera: ${if (cameraGranted) "granted" else "not granted"}")
         Text("Location: ${if (locationGranted) "granted" else "not granted"}")
 
@@ -119,6 +149,17 @@ fun PermissionScreen(modifier: Modifier = Modifier, onOpenCamera: () -> Unit, on
         Text(locationText)
         Button(enabled = cameraGranted, onClick = onOpenCamera) { Text("Open camera") }
         Button(enabled = locationGranted, onClick = onOpenMap) { Text("Open map") }
+
+        Text("Notifications: ${if (notificationsGranted) "granted" else "not granted"}")
+        Button(
+            enabled = !notificationsGranted,
+            onClick = {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    launcher.launch(arrayOf(Manifest.permission.POST_NOTIFICATIONS))
+                }
+            }
+        ) { Text("Allow notifications") }
+        Text(pushStatus)
     }
 }
 @Preview(showBackground = true)
