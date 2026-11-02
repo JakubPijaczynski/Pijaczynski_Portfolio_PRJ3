@@ -38,11 +38,15 @@ class MainActivity : ComponentActivity() {
         setContent {
             Pijaczynski_Portfolio_PRJ3Theme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    var showCamera by remember { mutableStateOf(false) }
-                    if (showCamera) {
-                        CameraScreen(onBack = { showCamera = false }, modifier = Modifier.padding(innerPadding))
-                    } else {
-                        PermissionScreen(onOpenCamera = { showCamera = true }, modifier = Modifier.padding(innerPadding))
+                    var screen by remember { mutableStateOf("home") }
+                    when (screen) {
+                        "camera" -> CameraScreen(onBack = { screen = "home" }, modifier = Modifier.padding(innerPadding))
+                        "map" -> MapScreen(onBack = { screen = "home" }, modifier = Modifier.padding(innerPadding))
+                        else -> PermissionScreen(
+                            onOpenCamera = { screen = "camera" },
+                            onOpenMap = { screen = "map" },
+                            modifier = Modifier.padding(innerPadding)
+                        )
                     }
 
                 }
@@ -60,7 +64,7 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 }
 @SuppressLint("MissingPermission")
 @Composable
-fun PermissionScreen(modifier: Modifier = Modifier, onOpenCamera: () -> Unit) {
+fun PermissionScreen(modifier: Modifier = Modifier, onOpenCamera: () -> Unit, onOpenMap: () -> Unit) {
     val context = LocalContext.current
 
     // 1. Check: do we already have it?
@@ -114,6 +118,7 @@ fun PermissionScreen(modifier: Modifier = Modifier, onOpenCamera: () -> Unit) {
         ) { Text("Get my location") }
         Text(locationText)
         Button(enabled = cameraGranted, onClick = onOpenCamera) { Text("Open camera") }
+        Button(enabled = locationGranted, onClick = onOpenMap) { Text("Open map") }
     }
 }
 @Preview(showBackground = true)
