@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "345793746364",
+    "project_id": "portfolio-prj3",
+    "storage_bucket": "portfolio-prj3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:345793746364:android:f68bd92eb0e64eb6ca87b9",
+        "android_client_info": {
+          "package_name": "nl.fontys.pijaczynski_portfolio_prj3"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBbGwVXTULSpasoRk0epgQq7SjYcID20gE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

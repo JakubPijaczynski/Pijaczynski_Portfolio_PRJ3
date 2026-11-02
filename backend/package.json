@@ -1,0 +1,65 @@
+{
+  "name": "portfolio-push-backend",
+  "version": "0.0.1",
+  "description": "Sends Firebase push notifications to the portfolio Android app",
+  "keywords": [
+    "loopback-application",
+    "loopback"
+  ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "engines": {
+    "node": "20 || 22 || 24"
+  },
+  "scripts": {
+    "build": "lb-tsc",
+    "build:watch": "lb-tsc --watch",
+    "lint": "npm run eslint && npm run prettier:check",
+    "lint:fix": "npm run eslint:fix && npm run prettier:fix",
+    "prettier:cli": "lb-prettier \"**/*.ts\" \"**/*.js\"",
+    "prettier:check": "npm run prettier:cli -- -l",
+    "prettier:fix": "npm run prettier:cli -- --write",
+    "eslint": "lb-eslint --report-unused-disable-directives .",
+    "eslint:fix": "npm run eslint -- --fix",
+    "pretest": "npm run rebuild",
+    "test": "lb-mocha --allow-console-logs \"dist/__tests__\"",
+    "posttest": "npm run lint",
+    "test:dev": "lb-mocha --allow-console-logs dist/__tests__/**/*.js && npm run posttest",
+    "preopenapi-spec": "npm run build",
+    "openapi-spec": "node ./dist/openapi-spec",
+    "prestart": "npm run rebuild",
+    "start": "node -r source-map-support/register .",
+    "clean": "lb-clean dist *.tsbuildinfo .eslintcache",
+    "rebuild": "npm run clean && npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "author": "Jakub Pijaczynski",
+  "license": "",
+  "files": [
+    "README.md",
+    "dist",
+    "src",
+    "!*/__tests__"
+  ],
+  "dependencies": {
+    "@loopback/boot": "^9.0.0",
+    "@loopback/core": "^7.0.15",
+    "@loopback/rest": "^15.0.16",
+    "@loopback/rest-explorer": "^9.0.0",
+    "@loopback/service-proxy": "^9.0.0",
+    "firebase-admin": "^14.5.0",
+    "tslib": "^2.0.0"
+  },
+  "devDependencies": {
+    "@loopback/build": "^13.0.0",
+    "@loopback/eslint-config": "^17.0.0",
+    "@loopback/testlab": "^9.0.0",
+    "@types/node": "^20.19.43",
+    "eslint": "^8.57.1",
+    "source-map-support": "^0.5.21",
+    "typescript": "npm:@typescript/typescript6@~6.0.2"
+  }
+}
